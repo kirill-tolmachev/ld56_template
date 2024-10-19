@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 
 public class Level1 : CMSEntity
 {
@@ -8,11 +9,11 @@ public class Level1 : CMSEntity
         Define<TagListChallenges>().all.Add(E.Id<ChallengeRock>());
     }
 
-    IEnumerator Script()
+    async UniTask Script()
     {
         G.main.AdjustSay(2f);
-        yield return G.main.Say("A big rock was blocking their path...");
-        yield return G.main.SmartWait(2f);
-        yield return G.main.Unsay();
+        await G.main.Say("A big rock was blocking their path...");
+        await G.main.SmartWait(2f);
+        await G.main.Unsay();
     }
 }

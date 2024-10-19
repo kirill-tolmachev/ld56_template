@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -49,14 +50,15 @@ public class TutorialMask : MonoBehaviour
         G.ui.Punch(arrow);
     }
 
-    public IEnumerator WaitForSkip()
+    public async UniTask WaitForSkip()
     {
-        yield return new WaitForSeconds(0.5f);
+        await UniTask.WaitForSeconds(0.5f);
         skip = false;
         while (!skip)
         {
-            yield return new WaitForEndOfFrame();
+            await UniTask.WaitForEndOfFrame();
         }
+        
         Hide();
     }
     

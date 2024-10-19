@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class MorphingDice : DiceBase
@@ -23,7 +24,7 @@ public class TagMorph : EntityComponentDefinition
 
 public class MorphInteraction : BaseInteraction, IOnPlay
 {
-    public IEnumerator OnPlayDice(DiceState dice)
+    public async UniTask OnPlayDice(DiceState dice)
     {
         if (dice.model.Is<TagMorph>(out var tm))
         {
@@ -34,8 +35,8 @@ public class MorphInteraction : BaseInteraction, IOnPlay
                 interactiveObject.transform.position = dice.view.transform.position;
                 interactiveObject.moveable.targetPosition = interactiveObject.transform.position;
                 
-                yield return G.main.KillDice(dice);
-                yield return G.main.PlayDice(interactiveObject);
+                await G.main.KillDice(dice);
+                await G.main.PlayDice(interactiveObject);
             }
         }
     }

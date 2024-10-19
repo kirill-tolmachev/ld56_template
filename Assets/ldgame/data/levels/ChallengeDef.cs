@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 
 public class TagListChallenges : EntityComponentDefinition
 {
@@ -21,11 +22,11 @@ public enum GoalType
 
 public class ChallengeSinkCounter : BaseInteraction, IOnPutIntoGoal
 {
-    public IEnumerator OnGoalDice(DiceState dice, DiceHolder holder)
+    public async UniTask OnGoalDice(DiceState dice, DiceHolder holder)
     {
         if (holder.spec.type == GoalType.SINK)
         {
-            yield return G.main.KillDice(dice);
+            await G.main.KillDice(dice);
             holder.accumulatedValue += dice.rollValue;
         }
     }

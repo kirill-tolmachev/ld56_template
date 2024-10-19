@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class BlockDice : DiceBase
@@ -21,7 +22,7 @@ public class TagBlock : EntityComponentDefinition
 
 public class BlockDiceInteraction : BaseInteraction, IFilterDamage
 {
-    public IEnumerator ProcessDamage(Main.IntOutput dmgIncoming, InteractiveObject dice)
+    public async UniTask ProcessDamage(Main.IntOutput dmgIncoming, InteractiveObject dice)
     {
         if (dice.state.model.Is<TagBlock>(out var tag))
         {
@@ -29,11 +30,11 @@ public class BlockDiceInteraction : BaseInteraction, IFilterDamage
             if (dmgIncoming.dmg >= dice.state.rollValue)
             {
                 dmgIncoming.dmg -= dice.state.rollValue;
-                yield return G.main.KillDice(dice.state);
+                await G.main.KillDice(dice.state);
             }
             else
             {
-                yield return dice.state.view.SetValue(dice.state.rollValue - dmgIncoming.dmg);
+                await dice.state.view.SetValue(dice.state.rollValue - dmgIncoming.dmg);
                 dmgIncoming.dmg = 0;
             }
         }
@@ -42,5 +43,5 @@ public class BlockDiceInteraction : BaseInteraction, IFilterDamage
 
 public interface IFilterDamage
 {
-    public IEnumerator ProcessDamage(Main.IntOutput dmgIncoming, InteractiveObject dice);
+    public UniTask ProcessDamage(Main.IntOutput dmgIncoming, InteractiveObject dice);
 }

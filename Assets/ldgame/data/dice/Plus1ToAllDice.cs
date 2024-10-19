@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class Plus1ToAllDice : DiceBase
@@ -24,7 +25,7 @@ public class TagFudgeAllDice : EntityComponentDefinition
 
 public class FudgeAllDiceInteraction : BaseInteraction, IOnPlay
 {
-    public IEnumerator OnPlayDice(DiceState dice)
+    public async UniTask OnPlayDice(DiceState dice)
     {
         if (dice.model.Is<TagFudgeAllDice>(out var tfl))
         {
@@ -32,9 +33,9 @@ public class FudgeAllDiceInteraction : BaseInteraction, IOnPlay
             {
                 if (lastDice.state != dice)
                 {
-                    yield return lastDice.SetValue(lastDice.state.rollValue + tfl.delta);
+                    await lastDice.SetValue(lastDice.state.rollValue + tfl.delta);
                     lastDice.Punch();
-                    yield return new WaitForSeconds(0.25f);
+                    await UniTask.WaitForSeconds(0.25f);
                 }
             }
         }

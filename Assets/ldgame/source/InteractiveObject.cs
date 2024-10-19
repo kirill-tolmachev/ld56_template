@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -66,7 +67,7 @@ public class InteractiveObject : MonoBehaviour, IPointerClickHandler, IPointerEn
         }
     }
 
-    public IEnumerator SetValue(int val)
+    public async UniTask SetValue(int val)
     {
         G.audio.Play<SFX_Roll>();
         
@@ -76,7 +77,7 @@ public class InteractiveObject : MonoBehaviour, IPointerClickHandler, IPointerEn
         if (state.rollValue > state.Sides)
         {
             G.feel.UIPunchSoft();
-            yield return new WaitForSeconds(0.25f);
+            await UniTask.WaitForSeconds(0.25f);
 
             state.rollValue = 1;
         }
@@ -84,7 +85,7 @@ public class InteractiveObject : MonoBehaviour, IPointerClickHandler, IPointerEn
         if (state.rollValue <= 0)
         {
             G.feel.UIPunchSoft();
-            yield return new WaitForSeconds(0.25f);
+            await UniTask.WaitForSeconds(0.25f);
 
             state.rollValue = state.Sides;
         }

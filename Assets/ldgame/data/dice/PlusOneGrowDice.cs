@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class PlusOneGrowDice : DiceBase
@@ -28,11 +29,11 @@ public class TagGrowEachTurn : EntityComponentDefinition
 
 public class GrowEachTurn : BaseInteraction, IOnEndTurnFieldDice
 {
-    public IEnumerator OnEndTurnInField(DiceState state)
+    public async UniTask OnEndTurnInField(DiceState state)
     {
         if (state.model.Is<TagGrowEachTurn>(out var eg))
         {
-            yield return state.view.SetValue(state.rollValue + eg.delta);
+            await state.view.SetValue(state.rollValue + eg.delta);
         }
     }
 }

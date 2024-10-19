@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -10,7 +11,7 @@ public class XKLogoAnimation : MonoBehaviour
     public SpriteRenderer logo;
     bool skip;
 
-    IEnumerator Start()
+    async void Start()
     {
         G.audio.Play<Sound_AmbienceForest>();
         
@@ -23,21 +24,21 @@ public class XKLogoAnimation : MonoBehaviour
 
         text.text = "GAME BY XK";
 
-        yield return SmartWait(0.5f);
+        await SmartWait(0.5f);
 
         G.audio.Play<SFX_Click>();
         G.feel.UIPunchSoft();
 
         text.DOFade(1f, 0.5f);
 
-        yield return SmartWait(1.5f);
+        await SmartWait(1.5f);
 
         G.audio.Play<SFX_Click>();
         G.feel.UIPunchSoft();
 
         text.DOFade(0f, 1f);
 
-        yield return SmartWait(1f);
+        await SmartWait(1f);
 
         text.text = "<size=50%>MADE IN 48 HOURS FOR\nLUDUM DARE 56</size>";
 
@@ -46,28 +47,28 @@ public class XKLogoAnimation : MonoBehaviour
 
         text.DOFade(1f, 0.5f);
 
-        yield return SmartWait(3.5f);
+        await SmartWait(3.5f);
 
         G.audio.Play<SFX_Click>();
         G.feel.UIPunchSoft();
 
         text.DOFade(0f, 1.5f);
 
-        yield return SmartWait(1.5f);
+        await SmartWait(1.5f);
 
         G.audio.Play<SFX_Click>();
         G.feel.UIPunchSoft();
 
         logo.DOFade(1f, 1f);
 
-        yield return SmartWait(3f);
+        await SmartWait(3f);
 
         logo.DOFade(0f, 2f);
 
-        yield return SmartWait(1f);
+        await SmartWait(1f);
 
         G.fader.FadeIn();
-        yield return SmartWait(1f);
+        await SmartWait(1f);
 
         SceneManager.LoadScene(GameSettings.MAIN_SCENE);
     }
@@ -80,13 +81,13 @@ public class XKLogoAnimation : MonoBehaviour
         }
     }
 
-    public IEnumerator SmartWait(float f)
+    public async UniTask SmartWait(float f)
     {
         skip = false;
         while (f > 0 && !skip)
         {
             f -= Time.deltaTime;
-            yield return new WaitForEndOfFrame();
+            await UniTask.WaitForEndOfFrame();
         }
     }
 }

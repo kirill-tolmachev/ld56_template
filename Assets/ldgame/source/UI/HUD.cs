@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,38 +23,38 @@ public class HUD : MonoBehaviour
     {
         EndTurn.onClick.AddListener(OnClickEndTurn);
 
-        StartCoroutine(TrackHealth());
+        TrackHealth().Forget();
     }
 
-    IEnumerator TrackHealth()
+    async UniTaskVoid TrackHealth()
     {
         Health.value = G.run.maxHealth / 2;
-        yield return UpdateHP();
+        await UpdateHP();
         
         while (true)
         {
             if (Health.value > G.run.health)
             {
                 Health.value--;
-                yield return UpdateHP();
+                await UpdateHP();
             }
 
             if (Health.value < G.run.health)
             {
                 Health.value++;
-                yield return UpdateHP();
+                await UpdateHP();
             }
             
             Health.maxValue = G.run.maxHealth;
-            yield return new WaitForEndOfFrame();
+            await UniTask.WaitForEndOfFrame();
         }
     }
 
-    IEnumerator UpdateHP()
+    async UniTask UpdateHP()
     {
-        yield return G.ui.ScaleCountIn(HealthValue.transform);
+        await G.ui.ScaleCountIn(HealthValue.transform);
         HealthValue.text = Health.value + "/" + G.run.maxHealth;
-        yield return G.ui.ScaleCountOut(HealthValue.transform);
+        await G.ui.ScaleCountOut(HealthValue.transform);
     }
 
     void OnClickEndTurn()

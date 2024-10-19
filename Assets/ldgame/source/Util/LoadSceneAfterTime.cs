@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -7,9 +8,9 @@ public class LoadSceneAfterTime : MonoBehaviour
     public float time;
     public string scene;
 
-    IEnumerator Start()
+    async void Start()
     {
-        yield return new WaitForSeconds(time);
+        await UniTask.WaitForSeconds(time);
         SceneManager.LoadScene(scene);
     }
 }

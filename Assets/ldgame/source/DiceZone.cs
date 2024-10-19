@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -142,7 +143,7 @@ public class DiceZone : MonoBehaviour
         return null;
     }
 
-    public IEnumerator Clear(bool soft = false)
+    public async UniTask Clear(bool soft = false)
     {
         var interactiveObjects = new List<InteractiveObject>(objects);
         foreach (var f in interactiveObjects)
@@ -153,7 +154,7 @@ public class DiceZone : MonoBehaviour
             }
             else
             {
-                yield return G.main.KillDice(f.state);
+                await G.main.KillDice(f.state);
             }
         }
     }

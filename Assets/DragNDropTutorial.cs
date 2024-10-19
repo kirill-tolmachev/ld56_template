@@ -1,5 +1,6 @@
 using System;
-using System.Collections;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using UnityEngine;
 
@@ -9,9 +10,11 @@ public class DragNDropTutorial : MonoBehaviour
     public Sprite dn;
 
     public SpriteRenderer spriteRen;
-    
-    Transform fromt;
-    Transform tot;
+
+    private Transform fromt;
+    private Transform tot;
+
+    private CancellationTokenSource cancellationTokenSource;
 
     void Start()
     {
@@ -22,41 +25,57 @@ public class DragNDropTutorial : MonoBehaviour
     {
         fromt = from;
         tot = to;
-        
+
         spriteRen.enabled = true;
-        
-        StopAllCoroutines();
-        StartCoroutine(TutorializeDrag());
+
+        // Cancel previous task if any
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource = new CancellationTokenSource();
+
+        TutorializeDrag(cancellationTokenSource.Token).Forget();
     }
 
-    IEnumerator TutorializeDrag()
+    private async UniTask TutorializeDrag(CancellationToken cancellationToken)
     {
         while (true)
         {
-            Debug.Log( "from");
+            if (cancellationToken.IsCancellationRequested)
+                return;
+
+            Debug.Log("from");
             spriteRen.transform.position = fromt.position;
             spriteRen.sprite = up;
 
-            yield return new WaitForSeconds(0.25f);
-            
+            await UniTask.WaitForSeconds(0.25f, cancellationToken: cancellationToken);
+
             spriteRen.sprite = dn;
 
-            yield return new WaitForSeconds(0.15f);
+            await UniTask.WaitForSeconds(0.15f, cancellationToken: cancellationToken);
 
-            yield return spriteRen.transform.DOMove(tot.transform.position, 1f).WaitForCompletion();
-            Debug.Log( "to");
-            
-            yield return new WaitForSeconds(0.15f);
-            
+            await spriteRen.transform.DOMove(tot.position, 1f)
+                .SetEase(Ease.Linear)
+                .WithCancellation(cancellationToken);
+
+            Debug.Log("to");
+
+            await UniTask.WaitForSeconds(0.15f, cancellationToken: cancellationToken);
+
             spriteRen.sprite = up;
-            
-            yield return new WaitForSeconds(0.15f);
+
+            await UniTask.WaitForSeconds(0.15f, cancellationToken: cancellationToken);
         }
     }
 
     public void Hide()
     {
         spriteRen.enabled = false;
-        StopAllCoroutines();
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource = null;
+    }
+
+    private void OnDestroy()
+    {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
     }
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
+using Cysharp.Threading.Tasks;
 
 public class ScreenFader : MonoBehaviour
 {
@@ -31,15 +32,15 @@ public class ScreenFader : MonoBehaviour
 
     public void FadeIn()
     {
-        StartCoroutine(Fade(0f, 1f)); // Fade from black (opaque) to transparent
+        Fade(0f, 1f).Forget(); // Fade from black (opaque) to transparent
     }
 
     public void FadeOut()
     {
-        StartCoroutine(Fade(1f, 0f)); // Fade from transparent to black (opaque)
+        Fade(1f, 0f).Forget(); // Fade from transparent to black (opaque)
     }
 
-    private IEnumerator Fade(float startAlpha, float endAlpha)
+    private async UniTask Fade(float startAlpha, float endAlpha)
     {
         float elapsed = 0f;
 
@@ -50,7 +51,7 @@ public class ScreenFader : MonoBehaviour
             elapsed += Time.deltaTime;
             fadeColor.a = Mathf.Lerp(startAlpha, endAlpha, elapsed / fadeDuration);
             fadeImage.color = fadeColor;
-            yield return null;
+            await UniTask.NextFrame();
         }
 
         // Ensure the final color is correctly set

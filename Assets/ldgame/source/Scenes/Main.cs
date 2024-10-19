@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using GameAnalyticsSDK;
 using TMPro;
@@ -116,106 +117,106 @@ public class Main : MonoBehaviour
         pickedItem = arg0;
     }
 
-    public IEnumerator ShowPicker()
+    public async UniTask ShowPicker()
     {
         G.audio.Play<SFX_Magic>();
         
-        yield return G.main.Say("More creatures wanted to join the group.");
-        yield return G.main.SmartWait(3f);
+        await G.main.Say("More creatures wanted to join the group.");
+        await G.main.SmartWait(3f);
         G.main.AdjustSay(-1.2f);
-        yield return G.main.Say("But they could only take ONE.");
+        await G.main.Say("But they could only take ONE.");
 
-        yield return SetupPicker(new List<DiceRarity>() { DiceRarity.COMMON, DiceRarity.UNCOMMON });
+        await SetupPicker(new List<DiceRarity>() { DiceRarity.COMMON, DiceRarity.UNCOMMON });
 
-        yield return G.main.Say($"{pickedItem.GetNme()} was chosen.");
-        yield return G.main.SmartWait(1f);
+        await G.main.Say($"{pickedItem.GetNme()} was chosen.");
+        await G.main.SmartWait(1f);
 
         if (levelEntity.Is<TagHard>())
         {
             G.main.AdjustSay(0f);
-            yield return G.main.Say("Even more, RARER creatures desired to join.");
-            yield return G.main.SmartWait(3f);
+            await G.main.Say("Even more, RARER creatures desired to join.");
+            await G.main.SmartWait(3f);
 
             G.main.AdjustSay(-1.2f);
-            yield return G.main.Say("But still, they could only take ONE.");
-            yield return SetupPicker(new List<DiceRarity> { DiceRarity.RARE });
+            await G.main.Say("But still, they could only take ONE.");
+            await SetupPicker(new List<DiceRarity> { DiceRarity.RARE });
 
-            yield return G.main.Say($"{pickedItem.GetNme()} was chosen.");
-            yield return G.main.SmartWait(1f);
+            await G.main.Say($"{pickedItem.GetNme()} was chosen.");
+            await G.main.SmartWait(1f);
 
             G.main.AdjustSay(0f);
 
-            yield return G.main.hand.Clear();
+            await G.main.hand.Clear();
             
-            yield return G.main.Say($"The creatures were starving...");
-            yield return G.main.SmartWait(3f);
+            await G.main.Say($"The creatures were starving...");
+            await G.main.SmartWait(3f);
 
-            yield return G.main.Say($"One of them had to be let go.");
-            yield return G.main.SmartWait(3f);
+            await G.main.Say($"One of them had to be let go.");
+            await G.main.SmartWait(3f);
 
             G.main.AdjustSay(-1.2f);
-            yield return G.main.Say($"Exile a creature. Choose wisely.");
+            await G.main.Say($"Exile a creature. Choose wisely.");
 
             G.main.showEnergyValue = true;
 
-            yield return TryTutorialExile();
+            await TryTutorialExile();
             
             var allDice = G.run.diceBag.ConvertAll(m => CMS.Get<DiceBase>(m.id)).ToList();
-            yield return G.main.SetupPicker(allDice, showAmount: allDice.Count, addToBag: false);
+            await G.main.SetupPicker(allDice, showAmount: allDice.Count, addToBag: false);
 
             var pickedId = G.main.pickedItem.state.model.id;
 
-            yield return G.main.picker.Clear();
+            await G.main.picker.Clear();
             G.main.picker.Claim(CreateDice(pickedId));
 
             G.main.showEnergyValue = false;
 
             G.run.diceBag.Remove(G.run.diceBag.Find(m => m.id == pickedId));
-            yield return G.main.Say($"{G.main.pickedItem.GetNme()} was left behind.");
-            yield return G.main.SmartWait(3f);
+            await G.main.Say($"{G.main.pickedItem.GetNme()} was left behind.");
+            await G.main.SmartWait(3f);
 
             if (G.main.pickedItem.GetEnergyValue() == 0)
-                yield return G.main.Say($"No Energy restored.");
+                await G.main.Say($"No Energy restored.");
             else
-                yield return G.main.Say($"{G.main.pickedItem.GetEnergyValue()} Energy restored.");
+                await G.main.Say($"{G.main.pickedItem.GetEnergyValue()} Energy restored.");
             
             G.run.health += G.main.pickedItem.GetEnergyValue();
             if (G.run.health > G.run.maxHealth) G.run.health = G.run.maxHealth;
 
-            yield return G.main.SmartWait(3f);
+            await G.main.SmartWait(3f);
         }
     }
 
-    IEnumerator TryTutorialExile()
+    async UniTask TryTutorialExile()
     {
         if (PlayerPrefs.GetInt("tutorial_sacrifice", 0) == 0)
         {
             G.ui.tutorial.Show();
             G.ui.tutorial.SetTutorialText("A creature you choose will be removed from your deck", 0);
             G.ui.click_to_continue.gameObject.SetActive(true);
-            yield return G.ui.tutorial.WaitForSkip();
+            await G.ui.tutorial.WaitForSkip();
 
             G.ui.tutorial.Show();
             G.ui.tutorial.SetTutorialText("The RARER the creature, the more energy you will restore", 0);
-            yield return G.ui.tutorial.WaitForSkip();
+            await G.ui.tutorial.WaitForSkip();
 
             G.ui.tutorial.Show();
             G.ui.tutorial.SetTutorialText("Rabbits don't restore energy", 0);
-            yield return G.ui.tutorial.WaitForSkip();
+            await G.ui.tutorial.WaitForSkip();
             G.ui.click_to_continue.gameObject.SetActive(false);
 
             PlayerPrefs.SetInt("tutorial_sacrifice", 1);
         }
     }
 
-    public IEnumerator SetupPicker(List<DiceRarity> rarityToSuggest, int maxPick = 1, bool dontClear = false)
+    public UniTask SetupPicker(List<DiceRarity> rarityToSuggest, int maxPick = 1, bool dontClear = false)
     {
         var allDice = CMS.GetAll<DiceBase>();
 
         var allRarity = allDice.FindAll(m => FitsCriteria(m, rarityToSuggest));
         allRarity.Shuffle();
 
-        yield return SetupPicker(allRarity, maxPick, dontClear);
+        return SetupPicker(allRarity, maxPick, dontClear);
     }
 
     bool FitsCriteria(DiceBase m, List<DiceRarity> rarityToSuggest)
@@ -229,16 +230,16 @@ public class Main : MonoBehaviour
         return rarityToSuggest.Contains(m.Get<TagRarity>().rarity);
     }
 
-    public IEnumerator SetupPicker(List<DiceBase> dice, int maxPick = 1, bool dontClear = false, bool addToBag = true, int showAmount = 3)
+    public async UniTask SetupPicker(List<DiceBase> dice, int maxPick = 1, bool dontClear = false, bool addToBag = true, int showAmount = 3)
     {
-        yield return picker.Clear();
+        await picker.Clear();
 
         for (var i = 0; i < showAmount; i++)
             picker.Claim(CreateDice(dice[i].id));
 
         G.audio.Play<SFX_DiceDraw>();
         
-        yield return new WaitForSeconds(0.1f);
+        await UniTask.WaitForSeconds(0.1f);
 
         if (showAmount > 3)
             picker.spacing = 0.8f;
@@ -248,7 +249,7 @@ public class Main : MonoBehaviour
         for (var i = 0; i < maxPick; i++)
         {
             pickedItem = null;
-            while (pickedItem == null) yield return new WaitForEndOfFrame();
+            while (pickedItem == null) await UniTask.WaitForEndOfFrame();
 
             if (addToBag) hand.Claim(pickedItem);
 
@@ -258,7 +259,7 @@ public class Main : MonoBehaviour
         
         G.ui.DisableInput();
         
-        if (!dontClear) yield return picker.Clear();
+        if (!dontClear) await picker.Clear();
 
         if (addToBag) G.run.diceBag.Add(new DiceBagState(pickedItem.state.model.id));
         
@@ -267,10 +268,10 @@ public class Main : MonoBehaviour
 
     public void EndTurn()
     {
-        StartCoroutine(EndTurnCoroutine());
+        EndTurnCoroutine().Forget();
     }
 
-    IEnumerator EndTurnCoroutine()
+    async UniTaskVoid EndTurnCoroutine()
     {
         G.hud.DisableHud();
 
@@ -282,7 +283,7 @@ public class Main : MonoBehaviour
             {
                 if (!challengeActive.IsComplete())
                 {
-                    yield return ob.OnEndTurn(challengeActive);
+                    await ob.OnEndTurn(challengeActive);
                 }
             }
         }
@@ -291,18 +292,18 @@ public class Main : MonoBehaviour
         {
             var endTurn = G.main.interactor.FindAll<IOnEndTurnFieldDice>();
             foreach (var et in endTurn)
-                yield return et.OnEndTurnInField(f.state);
+                await et.OnEndTurnInField(f.state);
         }
 
-        yield return field.Clear(soft:true);
-        yield return hand.Clear();
+        await field.Clear(soft:true);
+        await hand.Clear();
 
-        yield return DrawDice();
+        await DrawDice();
 
         G.hud.EnableHud();
     }
 
-    IEnumerator Start()
+    private async void Start()
     {
         GameAnalytics.NewProgressionEvent(GAProgressionStatus.Start, "level_" + G.run.level);
         
@@ -316,7 +317,7 @@ public class Main : MonoBehaviour
         G.fader.FadeOut();
 
         if (G.run.level < levelSeq.Count)
-            yield return LoadLevel(CMS.Get<CMSEntity>(levelSeq[G.run.level]));
+            await LoadLevel(CMS.Get<CMSEntity>(levelSeq[G.run.level]));
         else
             SceneManager.LoadScene("ldgame/end_screen");
 
@@ -330,7 +331,7 @@ public class Main : MonoBehaviour
         
         diceBag.Shuffle();
         
-        yield return DrawDice();
+        await DrawDice();
 
         G.ui.EnableInput();
         G.hud.EnableHud();
@@ -343,42 +344,42 @@ public class Main : MonoBehaviour
             G.ui.tutorial.Show(G.ui.tutorial_hand);
             G.ui.click_to_continue.SetActive(true);
             
-            yield return G.ui.tutorial.WaitForSkip();
+            await G.ui.tutorial.WaitForSkip();
             
             G.ui.tutorial.SetTutorialText("Drag them on to the field to play them.", 400);
             G.ui.tutorial.Show(G.ui.tutorial_field);
             G.ui.click_to_continue.SetActive(false);
             
-            yield return G.ui.tutorial.WaitForSkip();
+            await G.ui.tutorial.WaitForSkip();
 
             G.main.tutorialDrag.Show(G.main.hand.transform, G.main.field.transform);
             G.main.hand.canDrag = true;
             while (field.objects.Count == 0)
-                yield return new WaitForEndOfFrame();
+                await UniTask.WaitForEndOfFrame();
             G.main.hand.canDrag = false;
             G.main.tutorialDrag.Hide();
             
             G.ui.tutorial.SetTutorialText("Drag the creature into the CHALLENGE SLOT to play it.", -400);
             G.ui.tutorial.Show(G.ui.tutorial_goals);
             
-            yield return G.ui.tutorial.WaitForSkip();
+            await G.ui.tutorial.WaitForSkip();
 
             G.main.tutorialDrag.Show(G.main.field.transform, G.main.challengesActive[0].slots[0].transform);
             while (G.main.challengesActive[0].slots[0].accumulatedValue == 0)
-                yield return new WaitForEndOfFrame();
+                await UniTask.WaitForEndOfFrame();
             G.main.tutorialDrag.Hide();
             
             G.ui.tutorial.SetTutorialText("Hit end turn to get more dice.", 0);
             G.ui.tutorial.Show(G.ui.tutorial_end_turn);
 
-            yield return G.ui.tutorial.WaitForSkip();
+            await G.ui.tutorial.WaitForSkip();
 
             G.ui.tutorial.SetTutorialText("But be careful, your energy runs out!", 0);
             G.ui.tutorial.Show(G.ui.tutorial_end_turn);
 
-            yield return G.ui.tutorial.WaitForSkip();
+            await G.ui.tutorial.WaitForSkip();
 
-            yield return new WaitForSeconds(0.5f);
+            await UniTask.WaitForSeconds(0.5f);
 
             PlayerPrefs.SetInt("tutorial1", 1);
             G.hud.EnableHud();
@@ -405,7 +406,7 @@ public class Main : MonoBehaviour
         // }
     }
 
-    IEnumerator DrawDice()
+    async UniTask DrawDice()
     {
         G.audio.Play<SFX_DiceDraw>();
         
@@ -422,17 +423,17 @@ public class Main : MonoBehaviour
                 diceState.bagState = diceBagState;
             }
 
-            yield return new WaitForSeconds(0.2f);
+            await UniTask.WaitForSeconds(0.2f);
         }
     }
 
-    public IEnumerator LoadLevel<T>() where T : CMSEntity
+    public UniTask LoadLevel<T>() where T : CMSEntity
     {
         var entity = CMS.Get<T>();
-        yield return LoadLevel(entity);
+        return LoadLevel(entity);
     }
 
-    public IEnumerator LoadLevel(CMSEntity entity)
+    public async UniTask LoadLevel(CMSEntity entity)
     {
         levelEntity = entity;
 
@@ -441,29 +442,29 @@ public class Main : MonoBehaviour
             foreach (var challenge in ls.all)
             {
                 var challengeObject = CMS.Get<CMSEntity>(challenge);
-                yield return AddChallenge(challengeObject);
+                await AddChallenge(challengeObject);
             }
         }
 
         if (levelEntity.Is<TagExecuteScript>(out var exs))
         {
-            yield return exs.toExecute();
+            await exs.toExecute();
 
             if (challengesActive.Count == 0)
             {
                 G.fader.FadeIn();
-                yield return new WaitForSeconds(1f);
+                await UniTask.WaitForSeconds(1f);
 
                 G.run.level++;
                 SceneManager.LoadScene(GameSettings.MAIN_SCENE);
 
                 while (true)
-                    yield return new WaitForEndOfFrame();
+                    await UniTask.WaitForEndOfFrame();
             }
         }
     }
 
-    public IEnumerator AddChallenge(CMSEntity challengeObject)
+    public async UniTask AddChallenge(CMSEntity challengeObject)
     {
         if (challengeObject.Is<TagPrefab>(out var pf))
         {
@@ -491,16 +492,16 @@ public class Main : MonoBehaviour
 
             challengesActive.Add(challengeContainer);
 
-            yield return new WaitForSeconds(0.5f);
+            await UniTask.WaitForSeconds(0.5f);
         }
     }
 
     public void TryPlayDice(InteractiveObject dice)
     {
-        StartCoroutine(PlayDice(dice));
+        PlayDice(dice).Forget();
     }
 
-    public IEnumerator PlayDice(InteractiveObject dice)
+    public async UniTask PlayDice(InteractiveObject dice)
     {
         G.audio.Play<SFX_Animal>();
         
@@ -508,18 +509,18 @@ public class Main : MonoBehaviour
 
         field.Claim(dice);
 
-        yield return new WaitForSeconds(0.25f);
+        await UniTask.WaitForSeconds(0.25f);
 
-        yield return Roll(dice);
+        await Roll(dice);
 
         if (hand.objects.Count == 0)
         {
-            yield return new WaitForSeconds(0.25f);
+            await UniTask.WaitForSeconds(0.25f);
             G.hud.PunchEndTurn();
         }
     }
 
-    public IEnumerator Roll(InteractiveObject dice)
+    public async UniTask Roll(InteractiveObject dice)
     {
         var roll = 1 + Random.Range(0, dice.state.Sides);
 
@@ -527,14 +528,14 @@ public class Main : MonoBehaviour
         foreach (var rfilter in rollFill)
             roll = rfilter.OverwriteRoll(dice.state, roll);
 
-        yield return dice.SetValue(roll);
+        await dice.SetValue(roll);
         G.feel.UIPunchSoft();
 
-        yield return new WaitForSeconds(0.25f);
+        await UniTask.WaitForSeconds(0.25f);
 
         var onPlayDice = interactor.FindAll<IOnPlay>();
         foreach (var onPlay in onPlayDice)
-            yield return onPlay.OnPlayDice(dice.state);
+            await onPlay.OnPlayDice(dice.state);
     }
 
     public void AddDice<T>() where T : CMSEntity
@@ -567,7 +568,7 @@ public class Main : MonoBehaviour
 
     public DragNDropTutorial tutorialDrag;
 
-    void Update()
+    private void Update()
     {
         foreach (var poh in partsOfHudToDisable)
             poh.SetActive(G.hud.gameObject.activeSelf);
@@ -593,7 +594,7 @@ public class Main : MonoBehaviour
         
         if (Input.GetKeyDown(KeyCode.W))
         {
-            StartCoroutine(WinSequence());
+            WinSequence().Forget();
         }
         
         if (Input.GetKeyDown(KeyCode.N))
@@ -610,7 +611,7 @@ public class Main : MonoBehaviour
         
         if (Input.GetKeyDown(KeyCode.D))
         {
-            StartCoroutine(DrawDice());
+            DrawDice().Forget();
             G.feel.UIPunchSoft();
         }
 #endif
@@ -645,37 +646,37 @@ public class Main : MonoBehaviour
         G.drag_dice = null;
     }
 
-    public IEnumerator KillDice(DiceState dice)
+    public async UniTask KillDice(DiceState dice)
     {
         if (dice.bagState != null)
             discardBag.Add(dice.bagState);
 
         if (dice.isDead)
-            yield break;
+            return;
 
         dice.isDead = true;
 
         dice.view.transform.DOScale(0f, 0.25f);
-        yield return new WaitForSeconds(0.25f);
+        await UniTask.WaitForSeconds(0.25f);
 
         dice.view.Leave();
         Destroy(dice.view.gameObject);
     }
 
-    public IEnumerator CheckForWin()
+    public UniTask CheckForWin()
     {
         foreach (var container in challengesActive)
         {
             if (!container.IsComplete())
             {
-                yield break;
+                return UniTask.CompletedTask;
             }
         }
 
-        yield return WinSequence();
+        return WinSequence();
     }
 
-    public IEnumerator ClearUpChallenges()
+    public async UniTask ClearUpChallenges()
     {
         var markForKill = new List<ChallengeContainer>();
 
@@ -684,24 +685,24 @@ public class Main : MonoBehaviour
                 markForKill.Add(container);
 
         foreach (var mfk in markForKill)
-            yield return ChallengeDefeated(mfk);
+            await ChallengeDefeated(mfk);
     }
 
-    IEnumerator ChallengeDefeated(ChallengeContainer mfk)
+    async UniTask ChallengeDefeated(ChallengeContainer mfk)
     {
         G.audio.Play<SFX_Kill>();
         mfk.transform.DOScale(0f, 0.5f);
-        yield return new WaitForSeconds(0.5f);
+        await UniTask.WaitForSeconds(0.5f);
     }
 
-    IEnumerator WinSequence()
+    async UniTask WinSequence()
     {
         GameAnalytics.NewProgressionEvent(GAProgressionStatus.Complete, "level_" + G.run.level);
 
         if (isWin)
         {
             Debug.Log("<color=red>double trigger win sequence lol</color>");
-            yield break;
+            return;
         }
 
         G.hud.DisableHud();
@@ -711,21 +712,21 @@ public class Main : MonoBehaviour
         G.ui.win.SetActive(true);
         G.audio.Play<SFX_Win>();
 
-        yield return new WaitForSeconds(1.22f);
+        await UniTask.WaitForSeconds(1.22f);
 
         G.ui.win.SetActive(false);
 
         // yield return storage.Clear();
-        yield return field.Clear();
-        yield return hand.Clear();
+        await field.Clear();
+        await hand.Clear();
 
         G.run.level++;
 
-        if (!IsFinal()) yield return ShowPicker();
+        if (!IsFinal()) await ShowPicker();
 
         G.fader.FadeIn();
 
-        yield return new WaitForSeconds(1f);
+        await UniTask.WaitForSeconds(1f);
 
         if (!IsFinal())
             SceneManager.LoadScene(GameSettings.MAIN_SCENE);
@@ -746,7 +747,7 @@ public class Main : MonoBehaviour
         public int dmg;
     }
 
-    public IEnumerator DealDamage(Vector3 origin, int dmg)
+    public async UniTask DealDamage(Vector3 origin, int dmg)
     {
         Vector3 screenPos = RectTransformUtility.WorldToScreenPoint(null, G.hud.Health.transform.position);
         var pos = Camera.main.ScreenToWorldPoint(screenPos);
@@ -755,7 +756,7 @@ public class Main : MonoBehaviour
 
         G.audio.Play<SFX_Woosh>();
         
-        yield return new WaitForSeconds(0.5f);
+        await UniTask.WaitForSeconds(0.5f);
 
         inst.GetComponent<ParticleSystem>().Stop();
         inst.AddComponent<Lifetime>();
@@ -767,7 +768,7 @@ public class Main : MonoBehaviour
         var interactiveObjects = new List<InteractiveObject>(field.objects);
         foreach (var fDice in interactiveObjects)
         foreach (var f in fdmg)
-            yield return f.ProcessDamage(outputDmg, fDice);
+            await f.ProcessDamage(outputDmg, fDice);
 
         G.audio.Play<SFX_GetDamage>();
         G.ui.hitLight.DOFade(0.2f, 0.2f).OnComplete(() => { G.ui.hitLight.DOFade(0f, 0.2f); });
@@ -777,51 +778,55 @@ public class Main : MonoBehaviour
         if (G.run.health <= 0)
         {
             G.run.health = 0;
-            yield return Loss();
+            await Loss();
         }
     }
 
-    IEnumerator Loss()
+    async UniTask Loss()
     {
         GameAnalytics.NewProgressionEvent(GAProgressionStatus.Fail, "level_" + G.run.level);
         
         G.ui.defeat.SetActive(true);
-        yield return new WaitForSeconds(1f);
+        await UniTask.WaitForSeconds(1f);
         G.run = null;
         SceneManager.LoadScene(GameSettings.MAIN_SCENE);
     }
 
-    public IEnumerator TransferToNextDice(InteractiveObject obj, int delta)
+    public UniTask TransferToNextDice(InteractiveObject obj, int delta)
     {
         var next = field.GetNextDice(obj);
         if (next != null)
-            yield return next.SetValue(next.state.rollValue + delta);
+            return next.SetValue(next.state.rollValue + delta);
+        
+        return UniTask.CompletedTask;
     }
 
-    public IEnumerator Say(string text)
+    public UniTask Say(string text)
     {
-        StartCoroutine(Print(say_text, text));
-        yield return Print(say_text_shadow, text);
+        Print(say_text, text).Forget();
+        return Print(say_text_shadow, text);
     }
 
-    public static IEnumerator Print(TMP_Text text, string actionDefinition, string fx = "wave")
+    private static async UniTask Print(TMP_Text text, string actionDefinition, string fx = "wave")
     {
         var visibleLength = TextUtils.GetVisibleLength(actionDefinition);
-        if (visibleLength == 0) yield break;
+        if (visibleLength == 0)
+            return;
 
         for (var i = 0; i < visibleLength; i++)
         {
             text.text = $"<link={fx}>{TextUtils.CutSmart(actionDefinition, 1 + i)}</link>";
-            yield return new WaitForEndOfFrame();
+            await UniTask.NextFrame();
 
             G.audio.Play<SFX_TypeChar>();
         }
     }
 
-    IEnumerator Unprint(TMP_Text text, string actionDefinition)
+    private async UniTask Unprint(TMP_Text text, string actionDefinition)
     {
         var visibleLength = TextUtils.GetVisibleLength(actionDefinition);
-        if (visibleLength == 0) yield break;
+        if (visibleLength == 0)
+            return;
 
         var str = "";
 
@@ -829,7 +834,7 @@ public class Main : MonoBehaviour
         {
             str = TextUtils.CutSmart(actionDefinition, i);
             text.text = $"<link=wave>{str}</link>";
-            yield return new WaitForEndOfFrame();
+            await UniTask.NextFrame();
         }
 
         text.text = "";
@@ -840,20 +845,20 @@ public class Main : MonoBehaviour
         G.hud.gameObject.SetActive(false);
     }
 
-    public IEnumerator SmartWait(float f)
+    public async UniTask SmartWait(float f)
     {
         skip = false;
         while (f > 0 && !skip)
         {
             f -= Time.deltaTime;
-            yield return new WaitForEndOfFrame();
+            await UniTask.NextFrame();
         }
     }
 
-    public IEnumerator Unsay()
+    public UniTask Unsay()
     {
-        StartCoroutine(Unprint(say_text, say_text.text));
-        yield return Unprint(say_text_shadow, say_text_shadow.text);
+        Unprint(say_text, say_text.text).Forget();
+        return Unprint(say_text_shadow, say_text_shadow.text);
     }
 
     public void AdjustSay(float i)
@@ -877,24 +882,24 @@ public class Lifetime : MonoBehaviour
 
 interface IOnEndTurnFieldDice
 {
-    public IEnumerator OnEndTurnInField(DiceState state);
+    public UniTask OnEndTurnInField(DiceState state);
 }
 
 interface IOnEndTurnObstacle
 {
-    public IEnumerator OnEndTurn(ChallengeContainer obstacle);
+    public UniTask OnEndTurn(ChallengeContainer obstacle);
 }
 
 public class DealDamagePenalty : BaseInteraction, IOnEndTurnObstacle
 {
-    public IEnumerator OnEndTurn(ChallengeContainer obstacle)
+    public async UniTask OnEndTurn(ChallengeContainer obstacle)
     {
         if (obstacle.model.Is<TagChallengePenalty>(out var penalty))
         {
             if (penalty.damage > 0)
             {
                 obstacle.GetComponent<InteractiveObject>().Punch();
-                yield return G.main.DealDamage(obstacle.transform.position, penalty.damage);
+                await G.main.DealDamage(obstacle.transform.position, penalty.damage);
             }
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -33,11 +34,11 @@ public class DiceHolder : MonoBehaviour
         if (IsDiceEntrapped(arg0) && !arg0.state.isClaimed && !isComplete && arg0.IsPlayedOrWildcard())
         {
             arg0.state.isClaimed = true;
-            StartCoroutine(ClaimDiceIntoGoal(arg0));
+            ClaimDiceIntoGoal(arg0).Forget();
         }
     }
 
-    IEnumerator ClaimDiceIntoGoal(InteractiveObject arg0)
+    async UniTaskVoid ClaimDiceIntoGoal(InteractiveObject arg0)
     {
         owner.transform.DOShakePosition(0.2f, 0.2f, 50);
         G.audio.Play<SFX_Impact>();
@@ -45,9 +46,9 @@ public class DiceHolder : MonoBehaviour
         zone.Claim(arg0);
         var inters = G.main.interactor.FindAll<IOnPutIntoGoal>();
         foreach (var i in inters)
-            yield return i.OnGoalDice(arg0.state, this);
+            await i.OnGoalDice(arg0.state, this);
 
-        yield return new WaitForSeconds(0.2f);
+        await UniTask.WaitForSeconds(0.2f);
 
         if (spec.type == GoalType.SINK)
             isComplete = accumulatedValue >= spec.goalValue;
@@ -57,11 +58,11 @@ public class DiceHolder : MonoBehaviour
         if (isComplete)
         {
             G.feel.UIPunchSoft();
-            yield return G.main.KillDice(arg0.state);
+            await G.main.KillDice(arg0.state);
         }
 
-        yield return G.main.ClearUpChallenges();
-        yield return G.main.CheckForWin();
+        await G.main.ClearUpChallenges();
+        await G.main.CheckForWin();
     }
 
     bool IsDiceEntrapped(InteractiveObject arg0)

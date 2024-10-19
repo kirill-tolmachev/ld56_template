@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using Engine.Math;
 using UnityEngine;
 
@@ -23,7 +24,7 @@ public class TagRerollerNext : EntityComponentDefinition
 
 public class RerollNext : BaseInteraction, IOnPlay
 {
-    public IEnumerator OnPlayDice(DiceState dice)
+    public async UniTask OnPlayDice(DiceState dice)
     {
         if (dice.model.Is<TagRerollerNext>())
         {
@@ -31,8 +32,8 @@ public class RerollNext : BaseInteraction, IOnPlay
             if (last != null)
             {
                 dice.view.Punch();
-                yield return new WaitForSeconds(0.25f);
-                yield return G.main.Roll(last);
+                await UniTask.WaitForSeconds(0.25f);
+                await G.main.Roll(last);
             }
         }
     }

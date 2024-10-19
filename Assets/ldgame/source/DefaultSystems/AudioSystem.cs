@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Common;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public enum AudioType
@@ -77,7 +78,7 @@ public class AudioSystem : MonoBehaviour
                     audioSource.volume = SFXVolume * sfxarr.volume;
                     audioSource.Play();
                     lastPlayTime[sfx.id] = Time.time;
-                    StartCoroutine(ReturnAudioSourceToPool(audioSource, clip.length));
+                    ReturnAudioSourceToPool(audioSource, clip.length).Forget();
                 }
             }
         }
@@ -100,9 +101,9 @@ public class AudioSystem : MonoBehaviour
         return newAudioSource;
     }
 
-    private IEnumerator ReturnAudioSourceToPool(AudioSource audioSource, float delay)
+    private async UniTask ReturnAudioSourceToPool(AudioSource audioSource, float delay)
     {
-        yield return new WaitForSeconds(delay);
+        await UniTask.WaitForSeconds(delay);
         audioSource.Stop();
         audioSource.clip = null; // Clear the clip after playing
     }

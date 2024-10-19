@@ -1,4 +1,5 @@
 using System.Collections;
+using Cysharp.Threading.Tasks;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -60,16 +61,16 @@ public class UI : MonoBehaviour
         healthTransform.transform.DOPunchScale(new Vector3(0.2f, 0.2f, 0.2f), 0.1f);
     }
 
-    public IEnumerator ScaleCountIn(Transform healthValueTransform)
+    public async UniTask ScaleCountIn(Transform healthValueTransform)
     {
         healthValueTransform.transform.DOKill(true);
-        yield return healthValueTransform.transform.DOScale(Vector3.one * 1.2f, 0.01f).WaitForCompletion();
+        await healthValueTransform.transform.DOScale(Vector3.one * 1.2f, 0.01f);
     }
     
-    public IEnumerator ScaleCountOut(Transform healthValueTransform)
+    public async UniTask ScaleCountOut(Transform healthValueTransform)
     {
         healthValueTransform.transform.DOKill(true);
-        yield return healthValueTransform.transform.DOScale(Vector3.one * 1f, 0.1f).WaitForCompletion();
+        await healthValueTransform.transform.DOScale(Vector3.one * 1f, 0.1f);
     }
 
     public void DisableInput()
