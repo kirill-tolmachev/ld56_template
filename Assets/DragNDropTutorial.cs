@@ -27,8 +27,7 @@ public class DragNDropTutorial : MonoBehaviour
         tot = to;
 
         spriteRen.enabled = true;
-
-        // Cancel previous task if any
+        
         cancellationTokenSource?.Cancel();
         cancellationTokenSource = new CancellationTokenSource();
 

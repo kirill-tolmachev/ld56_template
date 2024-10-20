@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -23,16 +24,19 @@ public class HUD : MonoBehaviour
     {
         EndTurn.onClick.AddListener(OnClickEndTurn);
 
-        TrackHealth().Forget();
+        TrackHealth(destroyCancellationToken).Forget();
     }
 
-    async UniTaskVoid TrackHealth()
+    async UniTaskVoid TrackHealth(CancellationToken cancellationToken)
     {
         Health.value = G.run.maxHealth / 2;
         await UpdateHP();
         
         while (true)
         {
+            if (cancellationToken.IsCancellationRequested)
+                return;
+            
             if (Health.value > G.run.health)
             {
                 Health.value--;

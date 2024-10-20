@@ -101,7 +101,7 @@ public class AudioSystem : MonoBehaviour
         return newAudioSource;
     }
 
-    private async UniTask ReturnAudioSourceToPool(AudioSource audioSource, float delay)
+    private async UniTaskVoid ReturnAudioSourceToPool(AudioSource audioSource, float delay)
     {
         await UniTask.WaitForSeconds(delay);
         audioSource.Stop();

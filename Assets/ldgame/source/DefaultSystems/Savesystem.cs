@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Newtonsoft.Json;
@@ -21,7 +22,7 @@ public class Savesystem : MonoBehaviour
         TryLoading();
         G.save = slot;
 
-        SaveEverySoOften().Forget();
+        SaveEverySoOften(destroyCancellationToken).Forget();
     }
 
     void TryLoading()
@@ -29,12 +30,15 @@ public class Savesystem : MonoBehaviour
         slot = JsonConvert.DeserializeObject<Savefile>(PlayerPrefs.GetString(SlotId, "{}"));
     }
 
-    private async UniTask SaveEverySoOften()
+    private async UniTask SaveEverySoOften(CancellationToken cancellationToken)
     {
         while (true)
         {
-            await UniTask.Delay(1000);
+            if (cancellationToken.IsCancellationRequested)
+                return;
             
+            await UniTask.Delay(1000, cancellationToken: cancellationToken);
+            Debug.Log("Save");
             var str = JsonConvert.SerializeObject(slot);
             PlayerPrefs.SetString(SlotId, str);
         }

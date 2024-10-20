@@ -40,7 +40,7 @@ public class ScreenFader : MonoBehaviour
         Fade(1f, 0f).Forget(); // Fade from transparent to black (opaque)
     }
 
-    private async UniTask Fade(float startAlpha, float endAlpha)
+    private async UniTaskVoid Fade(float startAlpha, float endAlpha)
     {
         float elapsed = 0f;
 
