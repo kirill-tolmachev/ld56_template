@@ -38,7 +38,7 @@ public class Savesystem : MonoBehaviour
                 return;
             
             await UniTask.Delay(1000, cancellationToken: cancellationToken);
-            Debug.Log("Save");
+            
             var str = JsonConvert.SerializeObject(slot);
             PlayerPrefs.SetString(SlotId, str);
         }
